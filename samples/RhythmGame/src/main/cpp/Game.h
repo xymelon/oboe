@@ -55,6 +55,7 @@ private:
     AAssetManager& mAssetManager;
 
     void load();
+    TapResult getTapResult(int64_t tapTimeInMillis, int64_t tapWindowInMillis);
 };
 
 

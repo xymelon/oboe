@@ -53,3 +53,23 @@ void Game::onSurfaceChanged(int widthInPixels, int heightInPixels) {
 
 void Game::onSurfaceDestroyed() {
 }
+
+/**
+ * Get the result of a tap
+ *
+ * @param tapTimeInMillis - The time the tap occurred in milliseconds
+ * @param tapWindowInMillis - The time at the middle of the "tap window" in milliseconds
+ * @return TapResult can be Early, Late or Success
+ */
+TapResult Game::getTapResult(int64_t tapTimeInMillis, int64_t tapWindowInMillis){
+    LOGD("Tap time %" PRId64 ", tap window time: %" PRId64, tapTimeInMillis, tapWindowInMillis);
+    if (tapTimeInMillis <= tapWindowInMillis + kWindowCenterOffsetMs) {
+        if (tapTimeInMillis >= tapWindowInMillis - kWindowCenterOffsetMs) {
+            return TapResult::Success;
+        } else {
+            return TapResult::Early;
+        }
+    } else {
+        return TapResult::Late;
+    }
+}
