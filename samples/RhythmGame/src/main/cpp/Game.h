@@ -53,6 +53,7 @@ public:
 
 private:
     AAssetManager& mAssetManager;
+    GameState mGameState = GameState::Loading;
 
     void load();
     TapResult getTapResult(int64_t tapTimeInMillis, int64_t tapWindowInMillis);
