@@ -54,6 +54,7 @@ public:
 private:
     AAssetManager& mAssetManager;
     GameState mGameState { GameState::Loading };
+    std::future<void> mLoadingResult;
 
     void load();
     TapResult getTapResult(int64_t tapTimeInMillis, int64_t tapWindowInMillis);
