@@ -131,4 +131,66 @@ Java_com_google_oboe_samples_liveEffect_LiveEffectEngine_native_1setDefaultStrea
     oboe::DefaultStreamValues::SampleRate = (int32_t) sampleRate;
     oboe::DefaultStreamValues::FramesPerBurst = (int32_t) framesPerBurst;
 }
+
+JNIEXPORT void JNICALL
+Java_com_google_oboe_samples_liveEffect_LiveEffectEngine_enableEarReturn(JNIEnv *env, jclass clazz,
+                                                                         jboolean enable) {
+    if (engine == nullptr) {
+        LOGE("Engine is null, you must call createEngine before calling this method");
+        return;
+    }
+    engine->enableEarReturn(enable);
+}
+
+JNIEXPORT jint JNICALL
+Java_com_google_oboe_samples_liveEffect_LiveEffectEngine_read(JNIEnv *env, jclass clazz,
+                                                              jfloatArray outputArray) {
+    if (engine == nullptr) {
+        LOGE("Engine is null, you must call createEngine before calling this method");
+        return 0;
+    }
+    CacheModel *cache;
+    bool success = engine->mFullDuplexPass.mCacheQueue.pop(cache);
+    if (success) {
+        // Copy cache data to output.
+        int32_t size = cache->getSize();
+        jfloat *outputPtr = env->GetFloatArrayElements(outputArray, JNI_FALSE);
+        memcpy(outputPtr, cache->getData(), size);
+        // Release resource.
+        env->ReleaseFloatArrayElements(outputArray, outputPtr, JNI_OK);
+        delete cache;
+        return size;
+    }
+    return 0;
+}
+
+JNIEXPORT jint JNICALL
+Java_com_google_oboe_samples_liveEffect_LiveEffectEngine_getBitsPerSample(JNIEnv *env,
+                                                                          jclass clazz) {
+    if (engine == nullptr) {
+        LOGE("Engine is null, you must call createEngine before calling this method");
+        return 0;
+    }
+    return engine->mRecordingStream->getBytesPerSample() * 8;
+}
+
+JNIEXPORT jint JNICALL
+Java_com_google_oboe_samples_liveEffect_LiveEffectEngine_getSampleRate(JNIEnv *env, jclass clazz) {
+    if (engine == nullptr) {
+        LOGE("Engine is null, you must call createEngine before calling this method");
+        return 0;
+    }
+    return engine->mRecordingStream->getSampleRate();
+}
+
+JNIEXPORT jint JNICALL
+Java_com_google_oboe_samples_liveEffect_LiveEffectEngine_getChannelCount(JNIEnv *env,
+                                                                         jclass clazz) {
+    if (engine == nullptr) {
+        LOGE("Engine is null, you must call createEngine before calling this method");
+        return 0;
+    }
+    return engine->mRecordingStream->getChannelCount();
+}
+
 } // extern "C"

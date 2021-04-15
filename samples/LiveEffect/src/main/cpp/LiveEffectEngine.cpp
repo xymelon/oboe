@@ -59,6 +59,10 @@ bool LiveEffectEngine::setEffectOn(bool isOn) {
     return success;
 }
 
+void LiveEffectEngine::enableEarReturn(bool enable) {
+    mFullDuplexPass.mEnableEarReturn = enable;
+}
+
 void LiveEffectEngine::closeStreams() {
     /*
     * Note: The order of events is important here.
@@ -75,7 +79,7 @@ void LiveEffectEngine::closeStreams() {
     mFullDuplexPass.setInputStream(nullptr);
 }
 
-oboe::Result  LiveEffectEngine::openStreams() {
+oboe::Result LiveEffectEngine::openStreams() {
     // Note: The order of stream creation is important. We create the playback
     // stream first, then use properties from the playback stream
     // (e.g. sample rate) to create the recording stream. By matching the

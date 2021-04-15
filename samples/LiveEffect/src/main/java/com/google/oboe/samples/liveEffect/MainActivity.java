@@ -28,6 +28,8 @@ import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
@@ -35,6 +37,8 @@ import android.widget.Toast;
 
 import com.google.oboe.samples.audio_device.AudioDeviceListEntry;
 import com.google.oboe.samples.audio_device.AudioDeviceSpinner;
+
+import java.io.File;
 
 /**
  * TODO: Update README.md and go through and comment sample
@@ -49,6 +53,7 @@ public class MainActivity extends Activity
 
     private TextView statusText;
     private Button toggleEffectButton;
+    private CheckBox checkEar;
     private AudioDeviceSpinner recordingDeviceSpinner;
     private AudioDeviceSpinner playbackDeviceSpinner;
     private boolean isPlaying = false;
@@ -63,6 +68,13 @@ public class MainActivity extends Activity
 
         statusText = findViewById(R.id.status_view_text);
         toggleEffectButton = findViewById(R.id.button_toggle_effect);
+        checkEar = findViewById(R.id.check_enable_ear);
+        checkEar.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                LiveEffectEngine.enableEarReturn(isChecked);
+            }
+        });
         toggleEffectButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -170,6 +182,8 @@ public class MainActivity extends Activity
         }
     }
 
+    private AudioWavFile wavFile;
+
     private void startEffect() {
         Log.d(TAG, "Attempting to start");
 
@@ -179,12 +193,22 @@ public class MainActivity extends Activity
         }
 
         boolean success = LiveEffectEngine.setEffectOn(true);
+        LiveEffectEngine.enableEarReturn(checkEar.isChecked());
         if (success) {
+            final File file = new File(getExternalCacheDir(), "oboe_test.wav");
+            wavFile = new AudioWavFile(LiveEffectEngine.getBitsPerSample(),
+                    LiveEffectEngine.getSampleRate(),
+                    LiveEffectEngine.getChannelCount(),
+                    file);
+            wavFile.open();
+
             setSpinnersEnabled(false);
             statusText.setText(R.string.status_playing);
             toggleEffectButton.setText(R.string.stop_effect);
             isPlaying = true;
             EnableAudioApiUI(false);
+
+            readData();
         } else {
             statusText.setText(R.string.status_open_failed);
             isPlaying = false;
@@ -199,6 +223,8 @@ public class MainActivity extends Activity
         isPlaying = false;
         setSpinnersEnabled(true);
         EnableAudioApiUI(true);
+
+        wavFile.close();
     }
 
     private void setSpinnersEnabled(boolean isEnabled){
@@ -254,4 +280,29 @@ public class MainActivity extends Activity
             toggleEffect();
         }
     }
+
+    private void readData() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                float[] cache = new float[1024];
+                while (isPlaying) {
+                    int size = LiveEffectEngine.read(cache);
+                    if (size > 0) {
+                        for (int i = 0; i < size; i++) {
+                            wavFile.writeFloat(cache[i]);
+                        }
+
+//                        StringBuilder builder = new StringBuilder();
+//
+//                        for (int i = 0; i < 5; i++) {
+//                            builder.append(cache[i]).append(" ");
+//                        }
+//                        System.out.println("hehe4 " + builder.toString());
+                    }
+                }
+            }
+        }).start();
+    }
+
 }

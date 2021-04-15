@@ -38,6 +38,14 @@ public enum LiveEffectEngine {
     static native void delete();
     static native void native_setDefaultStreamValues(int defaultSampleRate, int defaultFramesPerBurst);
 
+    static native void enableEarReturn(boolean enable);
+
+    static native int read(float[] output);
+
+    static native int getBitsPerSample();
+    static native int getSampleRate();
+    static native int getChannelCount();
+
     static void setDefaultStreamValues(Context context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1){
             AudioManager myAudioMgr = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);

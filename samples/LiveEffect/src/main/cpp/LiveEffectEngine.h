@@ -36,6 +36,8 @@ public:
      */
     bool setEffectOn(bool isOn);
 
+    void enableEarReturn(bool enable);
+
     /*
      * oboe::AudioStreamDataCallback interface implementation
      */
@@ -51,8 +53,10 @@ public:
     bool setAudioApi(oboe::AudioApi);
     bool isAAudioRecommended(void);
 
+    FullDuplexPass mFullDuplexPass;
+    std::shared_ptr<oboe::AudioStream> mRecordingStream;
+
 private:
-    FullDuplexPass    mFullDuplexPass;
     bool              mIsEffectOn = false;
     int32_t           mRecordingDeviceId = oboe::kUnspecified;
     int32_t           mPlaybackDeviceId = oboe::kUnspecified;
@@ -62,7 +66,6 @@ private:
     const int32_t     mInputChannelCount = oboe::ChannelCount::Stereo;
     const int32_t     mOutputChannelCount = oboe::ChannelCount::Stereo;
 
-    std::shared_ptr<oboe::AudioStream> mRecordingStream;
     std::shared_ptr<oboe::AudioStream> mPlayStream;
 
     oboe::Result openStreams();

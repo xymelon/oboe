@@ -29,9 +29,10 @@ public:
             std::shared_ptr<oboe::AudioStream> outputStream,
             void *outputData,
             int   numOutputFrames) {
-        // Copy the input samples to the output with a little arbitrary gain change.
-
-        // This code assumes the data format for both streams is Float.
+        if (!mEnableEarReturn) {
+            return oboe::DataCallbackResult::Continue;
+        }
+        // The data format for both streams is Float.
         const float *inputFloats = static_cast<const float *>(inputData);
         float *outputFloats = static_cast<float *>(outputData);
 
@@ -42,14 +43,23 @@ public:
 
         // It is possible that there may be fewer input than output samples.
         int32_t samplesToProcess = std::min(numInputSamples, numOutputSamples);
-        for (int32_t i = 0; i < samplesToProcess; i++) {
-            *outputFloats++ = *inputFloats++ * 0.95; // do some arbitrary processing
-        }
+
+        // Cache input data.
+        float *cacheFloats = new float[samplesToProcess];
+
+        // Copy input data.
+        memcpy(outputFloats, inputFloats, sizeof(float) * samplesToProcess);
+        memcpy(cacheFloats, inputFloats, sizeof(float) * samplesToProcess);
+
+        // Push cache data to queue.
+        CacheModel *cache = new CacheModel(cacheFloats, samplesToProcess);
+        mCacheQueue.push(cache);
 
         // If there are fewer input samples then clear the rest of the buffer.
         int32_t samplesLeft = numOutputSamples - numInputSamples;
-        for (int32_t i = 0; i < samplesLeft; i++) {
-            *outputFloats++ = 0.0; // silence
+        if (samplesLeft > 0) {
+            // silence
+            memset(outputFloats + samplesToProcess, 0.0, sizeof(float) * samplesLeft);
         }
 
         return oboe::DataCallbackResult::Continue;

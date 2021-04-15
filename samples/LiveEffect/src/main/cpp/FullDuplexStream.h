@@ -19,8 +19,9 @@
 
 #include <unistd.h>
 #include <sys/types.h>
-
 #include "oboe/Oboe.h"
+#include "utils/LockFreeQueue.h"
+#include "utils/CacheModel.h"
 
 class FullDuplexStream : public oboe::AudioStreamCallback {
 public:
@@ -72,9 +73,15 @@ public:
      */
     void setNumInputBurstsCushion(int32_t numInputBurstsCushion);
 
+    int32_t mBufferSize = 0;
+
+    // 队列空间设置最大值（2^30）
+    LockFreeQueue<CacheModel*, 1073741824> mCacheQueue;
+
+    bool mEnableEarReturn = true;
+
 private:
 
-    // TODO add getters and setters
     static constexpr int32_t kNumCallbacksToDrain   = 20;
     static constexpr int32_t kNumCallbacksToDiscard = 30;
 
@@ -94,7 +101,6 @@ private:
     std::shared_ptr<oboe::AudioStream> mInputStream;
     std::shared_ptr<oboe::AudioStream> mOutputStream;
 
-    int32_t              mBufferSize = 0;
     std::unique_ptr<float[]> mInputBuffer;
 };
 
