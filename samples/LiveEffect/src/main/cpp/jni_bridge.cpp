@@ -17,6 +17,8 @@
 #include <jni.h>
 #include <logging_macros.h>
 #include "LiveEffectEngine.h"
+#include <oboe/Utilities.h>
+#include <oboe/AudioStream.h>
 
 static const int kOboeApiAAudio = 0;
 static const int kOboeApiOpenSLES = 1;
@@ -144,7 +146,7 @@ Java_com_google_oboe_samples_liveEffect_LiveEffectEngine_enableEarReturn(JNIEnv 
 
 JNIEXPORT jint JNICALL
 Java_com_google_oboe_samples_liveEffect_LiveEffectEngine_read(JNIEnv *env, jclass clazz,
-                                                              jfloatArray outputArray) {
+                                                              jshortArray outputArray) {
     if (engine == nullptr) {
         LOGE("Engine is null, you must call createEngine before calling this method");
         return 0;
@@ -154,10 +156,11 @@ Java_com_google_oboe_samples_liveEffect_LiveEffectEngine_read(JNIEnv *env, jclas
     if (success) {
         // Copy cache data to output.
         int32_t size = cache->getSize();
-        jfloat *outputPtr = env->GetFloatArrayElements(outputArray, JNI_FALSE);
-        memcpy(outputPtr, cache->getData(), size);
+        jshort *outputPtr = env->GetShortArrayElements(outputArray, JNI_FALSE);
+        // Convert to pcm16.
+        oboe::convertFloatToPcm16(cache->getData(), outputPtr, size);
         // Release resource.
-        env->ReleaseFloatArrayElements(outputArray, outputPtr, JNI_OK);
+        env->ReleaseShortArrayElements(outputArray, outputPtr, JNI_OK);
         delete cache;
         return size;
     }
@@ -171,7 +174,8 @@ Java_com_google_oboe_samples_liveEffect_LiveEffectEngine_getBitsPerSample(JNIEnv
         LOGE("Engine is null, you must call createEngine before calling this method");
         return 0;
     }
-    return engine->mRecordingStream->getBytesPerSample() * 8;
+    // 16位（Float类型也会转成pcm16）
+    return 16;
 }
 
 JNIEXPORT jint JNICALL

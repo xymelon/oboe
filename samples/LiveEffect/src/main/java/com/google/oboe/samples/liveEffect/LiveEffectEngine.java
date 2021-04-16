@@ -40,7 +40,7 @@ public enum LiveEffectEngine {
 
     static native void enableEarReturn(boolean enable);
 
-    static native int read(float[] output);
+    static native int read(short[] output);
 
     static native int getBitsPerSample();
     static native int getSampleRate();

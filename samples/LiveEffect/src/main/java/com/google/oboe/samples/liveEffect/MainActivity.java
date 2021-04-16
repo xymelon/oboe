@@ -285,20 +285,11 @@ public class MainActivity extends Activity
         new Thread(new Runnable() {
             @Override
             public void run() {
-                float[] cache = new float[1024];
+                short[] cache = new short[1024];
                 while (isPlaying) {
                     int size = LiveEffectEngine.read(cache);
                     if (size > 0) {
-                        for (int i = 0; i < size; i++) {
-                            wavFile.writeFloat(cache[i]);
-                        }
-
-//                        StringBuilder builder = new StringBuilder();
-//
-//                        for (int i = 0; i < 5; i++) {
-//                            builder.append(cache[i]).append(" ");
-//                        }
-//                        System.out.println("hehe4 " + builder.toString());
+                        wavFile.write(cache, 0, size);
                     }
                 }
             }

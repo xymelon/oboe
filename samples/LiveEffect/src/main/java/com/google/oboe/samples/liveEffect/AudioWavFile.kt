@@ -5,6 +5,7 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.RandomAccessFile
 import java.nio.ByteBuffer
+import java.nio.ByteOrder
 
 /**
  * Created by xuyang on 2021/1/21.
@@ -28,16 +29,19 @@ class AudioWavFile(
         dataOutputStream?.write(audioBytes)
     }
 
-    fun writeFloat(audioFloat: Float) {
-        dataOutputStream?.writeFloat(audioFloat)
-    }
-
-    fun writeFloat(audioFloats: FloatArray) {
-        val buffer = ByteBuffer.allocate(audioFloats.size * 4)
-        for (audioFloat in audioFloats) {
-            buffer.putFloat(audioFloat)
+    fun write(audioShorts: ShortArray, offset: Int, length: Int) {
+        if (offset >= audioShorts.size || length == 0) {
+            return
         }
-        write(buffer.array())
+        var realLength = length
+        if (offset + realLength > audioShorts.size) {
+            realLength = audioShorts.size - offset
+        }
+        val byteBuffer = ByteBuffer.allocate(realLength * 2).order(ByteOrder.nativeOrder())
+        for (i in offset until (offset + realLength)) {
+            byteBuffer.putShort(audioShorts[i])
+        }
+        write(byteBuffer.array())
     }
 
     fun close() {
